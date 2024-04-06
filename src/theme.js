@@ -15,40 +15,51 @@ const theme = createTheme({
       contrastText: '#ffffff',
     },
     background: {
-      default: '#121212', 
-      paper: '#333333', 
+      default: '#121212',
+      paper: '#333333',
     },
   },
   components: {
     MuiTextField: {
       defaultProps: {
-        variant: 'filled', 
-        margin: 'dense', 
+        variant: 'filled',
+        margin: 'dense',
       },
       styleOverrides: {
         root: {
           '& .MuiFilledInput-input': {
-            color: 'white', 
+            color: 'white',
           },
           '& .MuiFilledInput-underline:before': {
-            borderBottomColor: 'transparent', 
+            borderBottomColor: 'transparent',
           },
           '& .MuiFilledInput-underline:hover:before': {
-            borderBottomColor: 'transparent', 
+            borderBottomColor: 'transparent',
           },
           '& .MuiFilledInput-underline:after': {
-            borderBottomColor: 'transparent', 
+            borderBottomColor: 'transparent',
           },
           '& .MuiInputLabel-filled': {
-            color: 'lightgrey', 
+            color: 'lightgrey',
           },
           '& .MuiFilledInput-root': {
-            backgroundColor: 'rgba(0, 0, 0, 0.4)', 
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
             '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
             },
             '&.Mui-focused': {
-              backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            },
+          },
+          '& .Mui-disabled': {
+            '& .MuiFilledInput-input': {
+              color: 'white',
+            },
+            '& .MuiInputLabel-filled': {
+              color: 'white',
+            },
+            '& .MuiFilledInput-root': {
+              backgroundColor: 'rgba(55, 55, 55, 0.5)', // Adjusted for better visibility of disabled fields
             },
           },
         },

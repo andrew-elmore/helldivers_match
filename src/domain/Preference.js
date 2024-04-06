@@ -85,11 +85,16 @@ export default class Preference extends BasicDomain {
     }
 
 
-    isSavable = () => (
-        this.difficulties.length > 0
-    );
+    validate () {
+        if (!this.difficulties.length) {
+            throw 'Please select at least one difficulty';
+        }
+        if (!this.enemies.length) {
+            throw 'Please select at least one enemy';
+        }
+    }
 
-    getActionToken = () => {
+    getActionToken () {
         return {
             difficulties: this.difficulties,
             focus: this.focus,

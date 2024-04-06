@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { Box, Grid, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import Preference from './../../domain/Preference';
-import LogoutButton from './Logout';
-function PreferencesEditor({ currentPreference }) {
-  const [preference, setPreference] = useState(currentPreference || new Preference());
+import { Box, Button, Grid, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import Preference from '../../../domain/Preference';
+function PreferencesEditor({ preference, setPreference }) {
 
-  const handleToggleChange = (payload) => {
-    console.log('payload', payload)
+  const handleChange = (payload) => {
     setPreference(new Preference({ ...preference, ...payload }));
   };
 
@@ -56,7 +53,7 @@ function PreferencesEditor({ currentPreference }) {
           <ToggleButtonGroup
             exclusive={exclusive}
             value={preference[field]}
-            onChange={(e, payload) => handleToggleChange({ [field]: payload })}
+            onChange={(e, payload) => handleChange({ [field]: payload })}
             sx={{
               '& .MuiToggleButtonGroup-grouped': {
                 margin: '2px',
@@ -94,10 +91,12 @@ function PreferencesEditor({ currentPreference }) {
 
   return (
     <Grid container>
-      <LogoutButton/>
       {fields.map((field, index) => (
         feildDisplay(field, index)
       ))}
+      {/* <Grid item xs={12} style={{marginTop: 24}}>
+        <Button onClick={() => handleSave(preference)}>Save</Button>
+      </Grid> */}
     </Grid>
   );
 }
