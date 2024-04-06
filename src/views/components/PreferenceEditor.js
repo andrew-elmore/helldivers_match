@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Grid, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import Preference from './../../domain/Preference';
-
+import LogoutButton from './Logout';
 function PreferencesEditor({ currentPreference }) {
   const [preference, setPreference] = useState(currentPreference || new Preference());
 
@@ -94,6 +94,7 @@ function PreferencesEditor({ currentPreference }) {
 
   return (
     <Grid container>
+      <LogoutButton/>
       {fields.map((field, index) => (
         feildDisplay(field, index)
       ))}
