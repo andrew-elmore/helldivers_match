@@ -18,7 +18,7 @@ const SquadEditor = ({currentSquad, onSave}) => {
       squad.validate();
       const actionToken = squad.getActionToken();
       const result = await Parse.Cloud.run("saveSquad", actionToken);
-      // onSave(result)
+      onSave(result)
     } catch (error) {
       console.error(error);
       alert("Failed to save squad.");
