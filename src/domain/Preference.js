@@ -76,6 +76,7 @@ export default class Preference extends BasicDomain {
     }
 
     constructor(props = {}) {
+
         super(props);
         this.objectId = props.objectId || null;
         this.difficulties = props.difficulties || Preference.DEFAULTS.difficulties;
@@ -86,7 +87,7 @@ export default class Preference extends BasicDomain {
     }
 
 
-    validate () {
+    validate = () => {
         if (!this.difficulties.length) {
             throw 'Please select at least one difficulty';
         }

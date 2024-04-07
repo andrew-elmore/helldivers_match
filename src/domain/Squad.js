@@ -12,7 +12,7 @@ export default class Squad extends BasicDomain {
         this.preference = new Preference(props.preference || {});
     }
 
-    validate() {
+    validate = () => {
         if (!this.friendCode.length) {
             throw 'Please enter a valid friend code.';
         }

@@ -7,6 +7,8 @@ import SignUpPage from './views/pages/SignUp';
 import SignInPage from './views/pages/SignIn';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MessageProvider } from './context/MessageContext';
+import Dashboard from './views/pages/Dashboard';
+import NewSquad from './views/pages/NewSquad';
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -41,7 +43,9 @@ const App = () => {
                 <Routes>
                   <Route path="/signup" element={<SignUpPage />} />
                   <Route path="/signin" element={<SignInPage />} />
-                  <Route path="/" element={<ProtectedRoute><SquadEditor /></ProtectedRoute>} />
+                  <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/newSquad" element={<ProtectedRoute><NewSquad /></ProtectedRoute>} />
+                  
                   {/* Redirect to signin by default if no path matches */}
                   <Route path="*" element={<Navigate to="/signin" />} />
                 </Routes>

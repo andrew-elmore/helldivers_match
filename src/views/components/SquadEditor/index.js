@@ -1,38 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button, Grid, TextField, Typography } from '@mui/material';
 import PreferencesEditor from './../PreferencesEditor/index';
+import Preference from '../../../domain/Preference';
 import Squad from '../../../domain/Squad';
 import { useAuth } from '../../../context/AuthContext';
 import Parse from 'parse';
 
 
-const SquadEditor = ({ currentSquad, onSave }) => {
+const SquadEditor = ({currentSquad, onSave}) => {
   const { currentUser } = useAuth();
-  const [squad, setSquad] = useState( new Squad({host: currentUser.get('username')}));
+  const [squad, setSquad] = useState( new Squad(currentSquad || {host: currentUser.get('username')}));
   
 
   const handleSave = async () => {
+    // :~~: add messages instead of alerts when requested. 
     try {
       squad.validate();
       const actionToken = squad.getActionToken();
-      console.log(actionToken)
       const result = await Parse.Cloud.run("saveSquad", actionToken);
-      console.log("Squad saved:", result);
+      // onSave(result)
     } catch (error) {
-      console.error("Failed to save squad:", error);
+      console.error(error);
       alert("Failed to save squad.");
     }
   };
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
-  setSquad(prevSquad => {
-      const updatedSquad = new Squad({...prevSquad, [name]: value});
-      return updatedSquad;
-  });
-};
+
+  const handleSetSquad = (name, value) => {
+    setSquad(new Squad({
+      ...squad,
+      [name]: value
+    }));
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    handleSetSquad(name, value)
+  };
 
 
+  const updatePreference = (payload) => {
+    const newPreference = new Preference(payload);
+    handleSetSquad('preference', newPreference)
+  }
   return (
     <Grid container direction="column" alignItems="center" justifyContent="center">
       <Grid item xs={12}>
@@ -50,7 +60,7 @@ const handleChange = (e) => {
         />
       </Grid>
       <Grid item xs={12}>
-        <PreferencesEditor preference={squad.preference} setPreference={(updatedPref) => setSquad({ ...squad, preference: updatedPref })} />
+        <PreferencesEditor preference={squad.preference} setPreference={updatePreference} />
       </Grid>
       <Grid item xs={12}>
         <Button onClick={handleSave} variant="contained">Save Squad</Button>
