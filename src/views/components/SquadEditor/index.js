@@ -3,25 +3,35 @@ import { Button, Grid, TextField, Typography } from '@mui/material';
 import PreferencesEditor from './../PreferencesEditor/index';
 import Squad from '../../../domain/Squad';
 import { useAuth } from '../../../context/AuthContext';
+import Parse from 'parse';
 
-function SquadEditor({ currentSquad, onSave }) {
+
+const SquadEditor = ({ currentSquad, onSave }) => {
   const { currentUser } = useAuth();
   const [squad, setSquad] = useState( new Squad({host: currentUser.get('username')}));
   
-  const handleSave = () => {
+
+  const handleSave = async () => {
     try {
-        const updatedSquad = new Squad(squad);
-        updatedSquad.validate();
-        onSave(updatedSquad);
+      squad.validate();
+      const actionToken = squad.getActionToken();
+      console.log(actionToken)
+      const result = await Parse.Cloud.run("saveSquad", actionToken);
+      console.log("Squad saved:", result);
     } catch (error) {
-        alert(error);
+      console.error("Failed to save squad:", error);
+      alert("Failed to save squad.");
     }
-};
+  };
 
 const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSquad(prevSquad => new Squad({ ...prevSquad, [name]: value }));
+  const { name, value } = e.target;
+  setSquad(prevSquad => {
+      const updatedSquad = new Squad({...prevSquad, [name]: value});
+      return updatedSquad;
+  });
 };
+
 
   return (
     <Grid container direction="column" alignItems="center" justifyContent="center">

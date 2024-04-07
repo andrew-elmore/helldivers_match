@@ -77,6 +77,7 @@ export default class Preference extends BasicDomain {
 
     constructor(props = {}) {
         super(props);
+        this.objectId = props.objectId || null;
         this.difficulties = props.difficulties || Preference.DEFAULTS.difficulties;
         this.focus = props.focus || Preference.DEFAULTS.focus;
         this.intensity = props.intensity || Preference.DEFAULTS.intensity;
@@ -94,8 +95,9 @@ export default class Preference extends BasicDomain {
         }
     }
 
-    getActionToken () {
+    getActionToken = () => {
         return {
+            objectId: this.objectId,
             difficulties: this.difficulties,
             focus: this.focus,
             intensity: this.intensity,
