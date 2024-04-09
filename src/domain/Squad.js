@@ -10,6 +10,7 @@ export default class Squad extends BasicDomain {
         this.guests = props.guests || [];
         this.friendCode = props.friendCode || '';
         this.preference = new Preference(props.preference || {});
+        this.status = props.status || 'open';
     }
 
     validate = () => {
@@ -26,6 +27,7 @@ export default class Squad extends BasicDomain {
             guests: this.guests,
             friendCode: this.friendCode,
             preference: this.preference.getActionToken(),
+            status: this.status
         }
     }     
     

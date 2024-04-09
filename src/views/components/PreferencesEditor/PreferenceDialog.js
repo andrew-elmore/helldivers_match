@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogActions, DialogContent, Button } from '@mui/material';
 import { useTheme, useMediaQuery } from '@mui/material';
-import { useMessage } from './../../context/MessageContext';
+import { useMessage } from '../../../context/MessageContext';
 import PreferenceEditor from './index';
 import Preference from '../../../domain/Preference';
 
@@ -23,7 +23,7 @@ function PreferencesDialog({ open, onClose, onSave, initialPreference }) {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogContent>
+      <DialogContent style={{padding: 0}}>
           <PreferenceEditor preference={preference} setPreference={setPreference} />
       </DialogContent>
       <DialogActions>

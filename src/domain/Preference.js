@@ -68,7 +68,7 @@ export default class Preference extends BasicDomain {
     ]
 
     static DEFAULTS = {
-        difficulties: [],
+        difficulties: Preference.DIFFICULTIES,
         focus: Preference.FOCUS_LIBERATION,
         intensity: Preference.INTENSITY_DETERMINED,
         mic: Preference.MIC_LOGISTICAL,
