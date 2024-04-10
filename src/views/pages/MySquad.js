@@ -4,7 +4,8 @@ import { Grid, Typography, Fab } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useAuth } from '../../context/AuthContext';
 import Parse from 'parse';
-import SquadView from '../components/SquadView';
+import SquadEditor from '../components/SquadEditor';
+import Squad from '../../domain/Squad';
 
 const MySquad = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const MySquad = () => {
     try {
       const result = await Parse.Cloud.run("getMySquad", { userId: currentUser.id });
       if (result) {
-        setSquad(result);
+        setSquad(new Squad(result));
       }
     } catch (error) {
       console.error("Failed to fetch my squad:", error);
@@ -26,17 +27,21 @@ const MySquad = () => {
     fetchMySquad();
   }, []);
 
+  if (!squad) {
+    return (
+      <Typography variant="h5">Loading...</Typography>
+    );
+  }
   return (
     <>
-      <Grid container justifyContent="center" alignItems="center" direction="column">
+      <Grid container justifyContent="center">
         <Grid item xs={12}>
-          <Typography variant="h4" gutterBottom>
-            My Squad
-          </Typography>
+          <SquadEditor
+            currentSquad={squad}
+            onSave={(newSquad) => setSquad( new Squad(newSquad))}
+          />
         </Grid>
-        {/* {squad && (
-          <SquadView squad={squad} />
-        )} */}
+
       </Grid>
     </>
   );

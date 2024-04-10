@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Button, Grid, TextField, Typography } from '@mui/material';
+import { Button, Grid, Icon, IconButton, TextField, Typography } from '@mui/material';
 import PreferencesEditor from './../PreferencesEditor/index';
 import Preference from '../../../domain/Preference';
 import Squad from '../../../domain/Squad';
 import { useAuth } from '../../../context/AuthContext';
 import Parse from 'parse';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 const SquadEditor = ({currentSquad, onSave}) => {
@@ -43,6 +45,24 @@ const SquadEditor = ({currentSquad, onSave}) => {
     const newPreference = new Preference(payload);
     handleSetSquad('preference', newPreference)
   }
+
+  const handleRemoveSquadMember = (index) => {
+    const updatedGuests = [...squad.guests];
+    updatedGuests.splice(index, 1);
+    handleSetSquad('guests', updatedGuests);
+  };
+
+  const handleAddSquadMember = () => {
+    if (squad.guests.length < 3) {
+      const updatedGuests = [...squad.guests, "-CLASSIFIED-"];
+      handleSetSquad('guests', updatedGuests);
+    }
+  };
+
+  const emptyGuestSpaces = 3 - squad.guests.length;
+  const emptyGuestArray = new Array(emptyGuestSpaces).fill(undefined);
+  
+
   return (
     <Grid container direction="column" alignItems="center" justifyContent="center">
       <Grid item xs={12}>
@@ -59,6 +79,26 @@ const SquadEditor = ({currentSquad, onSave}) => {
           onChange={handleChange}
         />
       </Grid>
+      {squad.guests.map((guest, index) => (
+        <Grid item xs={12} key={index}>
+          <Grid container alignItems="center" justifyContent="space-between" style={{padding: 8}}>
+            <Typography variant="h6" sx={{ width: '100%' }}>{guest}</Typography>
+            <IconButton color="primary" onClick={() => handleRemoveSquadMember(index)} sx={{ position: 'absolute', right: 0 }}>
+              <RemoveCircleOutlineIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      ))}
+      {emptyGuestArray.map((_, index) => (
+        <Grid item xs={12} key={index}>
+          <Grid container alignItems="center" justifyContent="space-between" style={{padding: 8}}>
+            <Typography variant="h6" sx={{ width: '100%' }}>Open</Typography>
+            <IconButton color="primary" onClick={handleAddSquadMember} sx={{ position: 'absolute', right: 0 }}>
+              <AddCircleOutlineIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      ))}
       <Grid item xs={12}>
         <PreferencesEditor preference={squad.preference} setPreference={updatePreference} />
       </Grid>
