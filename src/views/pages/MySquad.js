@@ -39,6 +39,7 @@ const MySquad = () => {
           <SquadEditor
             currentSquad={squad}
             onSave={(newSquad) => setSquad( new Squad(newSquad))}
+            liveUpdate={true}
           />
         </Grid>
 

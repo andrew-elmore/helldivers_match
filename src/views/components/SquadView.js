@@ -41,11 +41,6 @@ const SquadView = ({
     setOpen(false);
   }
 
-  const handleChangeSquad = (squad) => {
-    onChangeSquad(squad);
-    handleClose()
-  }
-
   const handleJoinSquad = () => {
     onJoinSquad(squad.objectId);
   }
@@ -62,7 +57,7 @@ const SquadView = ({
     <Box style={styles.container}>
       <Grid container justifyContent="center">
         <Grid item xs={12}>
-          <Typography variant="h5">{squad.host}</Typography>
+          <Typography variant="h5">{squad.host.username}</Typography>
         </Grid>
         <Grid item xs={12}>
           <Typography variant="h6">{squad.friendCode}</Typography>
@@ -75,7 +70,7 @@ const SquadView = ({
         {squad.guests.map((guest) => (
           <Grid item xs={12}>
             <Grid container justifyContent="center">
-              <Typography variant="h6">{guest}</Typography>
+              <Typography variant="h6">{guest?.username || "--CLASSIFIED--"}</Typography>
             </Grid>
           </Grid>
         ))}

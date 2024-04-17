@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Grid, Icon, IconButton, TextField, Typography } from '@mui/material';
 import PreferencesEditor from './../PreferencesEditor/index';
 import Preference from '../../../domain/Preference';
@@ -9,10 +9,16 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
-const SquadEditor = ({currentSquad, onSave}) => {
+const SquadEditor = ({currentSquad, onSave, liveUpdate}) => {
   const { currentUser } = useAuth();
-  const [squad, setSquad] = useState( new Squad(currentSquad || {host: currentUser.get('username')}));
-  
+  const [squad, setSquad] = useState( new Squad(currentSquad || {host: {objectId: currentUser.id}}));
+  const [friendCode, setFriendCode] = useState(squad.friendCode);
+
+  useEffect(() => {
+    if (liveUpdate) {
+      handleSave();
+    }
+  }, [squad]);
 
   const handleSave = async () => {
     // :~~: add messages instead of alerts when requested. 
@@ -37,6 +43,7 @@ const SquadEditor = ({currentSquad, onSave}) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(':~: handleChange', name, value)
     handleSetSquad(name, value)
   };
 
@@ -54,7 +61,7 @@ const SquadEditor = ({currentSquad, onSave}) => {
 
   const handleAddSquadMember = () => {
     if (squad.guests.length < 3) {
-      const updatedGuests = [...squad.guests, "-CLASSIFIED-"];
+      const updatedGuests = [...squad.guests, null];
       handleSetSquad('guests', updatedGuests);
     }
   };
@@ -75,14 +82,15 @@ const SquadEditor = ({currentSquad, onSave}) => {
           fullWidth
           label="Friend Code"
           name="friendCode"
-          value={squad.friendCode}
-          onChange={handleChange}
+          value={friendCode}
+          onChange={(e) => setFriendCode(e.target.value)}
+          onBlur={handleChange}
         />
       </Grid>
       {squad.guests.map((guest, index) => (
         <Grid item xs={12} key={index}>
           <Grid container alignItems="center" justifyContent="space-between" style={{padding: 8}}>
-            <Typography variant="h6" sx={{ width: '100%' }}>{guest}</Typography>
+            <Typography variant="h6" sx={{ width: '100%' }}>{guest?.username || "--CLASSIFIED--"}</Typography>
             <IconButton color="primary" onClick={() => handleRemoveSquadMember(index)} sx={{ position: 'absolute', right: 0 }}>
               <RemoveCircleOutlineIcon />
             </IconButton>
@@ -102,9 +110,11 @@ const SquadEditor = ({currentSquad, onSave}) => {
       <Grid item xs={12}>
         <PreferencesEditor preference={squad.preference} setPreference={updatePreference} />
       </Grid>
-      <Grid item xs={12}>
-        <Button onClick={handleSave} variant="contained">Save Squad</Button>
-      </Grid>
+      {!liveUpdate && (
+        <Grid item xs={12}>
+          <Button onClick={handleSave} variant="contained">Save Squad</Button>
+        </Grid>
+      )}
     </Grid>
   );
 }

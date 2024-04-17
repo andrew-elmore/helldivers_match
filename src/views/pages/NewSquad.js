@@ -11,7 +11,7 @@ const NewSquad = () => {
 
   return (
     <div>
-      <SquadEditor onSave={handleSave} />
+      <SquadEditor onSave={handleSave} liveUpdate={false}/>
     </div>
   );
 };

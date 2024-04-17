@@ -15,78 +15,82 @@ const savePreference = async (preferenceData) => {
   preference.set("enemies", preferenceData.enemies);
 
   await preference.save(null, { useMasterKey: true });
-  return preference;
+  return preference.toPointer();
 };
 
 Parse.Cloud.define("saveSquad", async (request) => {
-  try {
-    const squadData = request.params;
-    const preference = await savePreference(squadData.preference);
+  const squadData = request.params;
+  const preferencePointer = await savePreference(squadData.preference);
 
-    const Squad = Parse.Object.extend("Squad");
-    let squad = squadData.objectId ? await new Parse.Query(Squad).get(squadData.objectId, { useMasterKey: true }) : new Squad();
-
-    const guestPointers = squadData.guests.map(guestId => Parse.Object.extend("_User").createWithoutData(guestId));
-    const hostPointer = Parse.Object.extend("_User").createWithoutData(squadData.host);
-
-    squad.set("host", hostPointer);
-    squad.set("friendCode", squadData.friendCode);
-    squad.set("guests", guestPointers);
-    squad.set("status", squadData.status);
-    squad.set("preference", preference);
-
-    await squad.save(null, { useMasterKey: true });
-    return squad;
-  } catch (error) {
-    console.trace('saveSquad error', error);
-    return {error: `saveSquad: ${error.message}`};
+  const Squad = Parse.Object.extend("Squad");
+  let squad;
+  if (squadData.objectId) {
+    squad = await new Parse.Query(Squad).get(squadData.objectId, { useMasterKey: true });
+  } else {
+    squad = new Squad();
   }
+
+  const guestPointers = squadData.guests.map(guestId => guestId ? Parse.Object.extend("_User").createWithoutData(guestId) : null);
+  const hostPointer = Parse.Object.extend("_User").createWithoutData(squadData.host.objectId);
+
+  squad.set("host", hostPointer);
+  squad.set("friendCode", squadData.friendCode);
+  squad.set("guests", guestPointers);
+  squad.set("status", squadData.status);
+  squad.set("preference", preferencePointer);
+
+  // return squad.toJSON();
+  await squad.save(null, { useMasterKey: true });
 });
-
-
 
 Parse.Cloud.define("fetchSquads", async (request) => {
   const { difficulties, focus, intensity, mic, enemies } = request.params;
 
-
   const Squad = Parse.Object.extend("Squad");
   const squadQuery = new Parse.Query(Squad);
   squadQuery.equalTo("status", "open");
-  
+  squadQuery.include(["preference", "host", "guests"]);
 
-  squadQuery.include("preference");
-  
   const openSquads = await squadQuery.find({ useMasterKey: true });
-  
 
   const matchingSquads = openSquads.filter((squad) => {
     const pref = squad.get("preference");
-
-  
-    const matchesDifficulties = difficulties.some(difficulty => pref.get("difficulties").includes(difficulty));
-    const matchesFocus = pref.get("focus") === focus;
-    const matchesIntensity = pref.get("intensity") === intensity;
-    const matchesMic = pref.get("mic") === mic;
-    const matchesEnemies = enemies.every(enemy => pref.get("enemies").includes(enemy)) && enemies.length === pref.get("enemies").length;
+    const matchesDifficulties = difficulties ? difficulties.some(difficulty => pref.get("difficulties").includes(difficulty)) : true;
+    const matchesFocus = focus ? pref.get("focus") === focus : true;
+    const matchesIntensity = intensity ? pref.get("intensity") === intensity : true;
+    const matchesMic = mic !== undefined ? pref.get("mic") === mic : true;
+    const matchesEnemies = enemies ? enemies.every(enemy => pref.get("enemies").includes(enemy)) && enemies.length === pref.get("enemies").length : true;
 
     return matchesDifficulties && matchesFocus && matchesIntensity && matchesMic && matchesEnemies;
   });
 
+  const result = await Promise.all(matchingSquads.map(async (squad) => {
+    const host = squad.get("host") ? await squad.get("host").fetch() : null;
+    const guestObjects = squad.get("guests") ? await Promise.all(squad.get("guests").map(guest => {
+      if (guest) {
+        return guest.fetch()
+      } else {
+        return null
+      }
+    })) : [];
+    console.log(':~: fetchSquads guestObjects', guestObjects)
+    const guests = guestObjects.map(guest => {
+      return !!guest ? ({ username: guest.get("username"), objectId: guest.objectId }) : null;
+    });
 
-  const result = matchingSquads.map((squad) => {
+    console.log(':~: fetchSquads guests', guests)
     return {
       objectId: squad.id,
-      host: squad.get("host"),
+      host: host ? { username: host.get("username"), objectId: host.id } : null,
       friendCode: squad.get("friendCode"),
-      guests: squad.get("guests"),
+      guests: guests,
       preference: squad.get("preference").toJSON(),
       status: squad.get("status")
     };
-  });
+  }));
 
   return result;
 });
-
 
 Parse.Cloud.define("joinSquad", async (request) => {
   const { squadId, userId } = request.params;
@@ -98,27 +102,26 @@ Parse.Cloud.define("joinSquad", async (request) => {
     throw new Error("Squad not found.");
   }
 
-  const guests = squad.get("guests") || [];
-  if (guests.length >= 3) {
+  const guestPointers = squad.get("guests") || [];
+
+  if (guestPointers.length >= 3) {
     return { error: "Sorry, that squad is now full." };
   }
 
   const User = Parse.Object.extend("_User");
-  const userQuery = new Parse.Query(User);
-  const user = await userQuery.get(userId, { useMasterKey: true });
+  const newGuestPointer = User.createWithoutData(userId);
 
-  if (!user) {
-    throw new Error("User not found.");
-  }
+  guestPointers.push(newGuestPointer);
+  console.log(':~: joinSquad newGuestPointer', newGuestPointer);
+  console.log(':~: joinSquad guestPointers', guestPointers);
+  squad.set("guests", guestPointers);
 
-  const username = user.get("username");
-  guests.push(username);
-  squad.set("guests", guests);
-
-  if (guests.length === 3) {
+  if (guestPointers.length === 3) {
     squad.set("status", "full");
   }
 
+
+  // return squad.toJSON()
   await squad.save(null, { useMasterKey: true });
 
   return { success: "User added to the squad successfully, and status updated if necessary." };
@@ -127,27 +130,28 @@ Parse.Cloud.define("joinSquad", async (request) => {
 Parse.Cloud.define("getMySquad", async (request) => {
   const { userId } = request.params;
 
-  const User = Parse.Object.extend("_User");
-  const userQuery = new Parse.Query(User);
-  const user = await userQuery.get(userId, { useMasterKey: true });
-  if (!user) {
-    throw new Error("User not found.");
-  }
-  const username = user.get("username");
-  
-  console.log(':~: getMySquad username', username)  
   const Squad = Parse.Object.extend("Squad");
   const squadQuery = new Parse.Query(Squad);
-  squadQuery.equalTo("host", username); 
+  const userPointer = Parse.Object.extend("_User").createWithoutData(userId);
 
-  squadQuery.include("preference"); 
+  squadQuery.equalTo("host", userPointer);
+  squadQuery.include(["preference", "guests"]);
 
-  const squad = await squadQuery.first({ useMasterKey: true }); 
+  const squad = await squadQuery.first({ useMasterKey: true });
 
-  console.log(':~: getMySquad squad', squad)
   if (!squad) {
     return null;
   }
-  
-  return {...squad.toJSON(), objectId: squad.id};
+
+  const host = await squad.get("host").fetch();
+  const guests = await Promise.all(squad.get("guests").map(guest => guest.fetch()));
+
+  return {
+    objectId: squad.id,
+    host: { username: host.get("username"), objectId: host.id },
+    guests: guests.map(guest => ({ username: guest.get("username"), objectId: guest.id })),
+    preference: squad.get("preference").toJSON(),
+    status: squad.get("status"),
+    friendCode: squad.get("friendCode")
+  };
 });
