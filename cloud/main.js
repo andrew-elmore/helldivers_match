@@ -1,3 +1,32 @@
+const parseSquad = async (squad) => {
+  const host = squad.get("host") ? await squad.get("host").fetch() : null;
+  const guestObjects = squad.get("guests") ? await Promise.all(squad.get("guests").map(guest => {
+    if (guest) {
+      return guest.fetch()
+    } else {
+      return null
+    }
+  })) : [];
+
+  console.log(':~: guestObjects', guestObjects)
+  const guests = guestObjects.map(guest => {
+    return !!guest ? ({ username: guest.get("username"), objectId: guest.objectId }) : null;
+  });
+
+  console.log(':~: guests', guests)
+
+
+
+  return {
+    objectId: squad.id,
+    host: host ? { username: host.get("username"), objectId: host.id } : null,
+    friendCode: squad.get("friendCode"),
+    guests: guests,
+    preference: squad.get("preference").toJSON(),
+    status: squad.get("status")
+  };
+}
+
 const savePreference = async (preferenceData) => {
   let preference;
   const Preference = Parse.Object.extend("Preference");
@@ -65,28 +94,7 @@ Parse.Cloud.define("fetchSquads", async (request) => {
   });
 
   const result = await Promise.all(matchingSquads.map(async (squad) => {
-    const host = squad.get("host") ? await squad.get("host").fetch() : null;
-    const guestObjects = squad.get("guests") ? await Promise.all(squad.get("guests").map(guest => {
-      if (guest) {
-        return guest.fetch()
-      } else {
-        return null
-      }
-    })) : [];
-    console.log(':~: fetchSquads guestObjects', guestObjects)
-    const guests = guestObjects.map(guest => {
-      return !!guest ? ({ username: guest.get("username"), objectId: guest.objectId }) : null;
-    });
-
-    console.log(':~: fetchSquads guests', guests)
-    return {
-      objectId: squad.id,
-      host: host ? { username: host.get("username"), objectId: host.id } : null,
-      friendCode: squad.get("friendCode"),
-      guests: guests,
-      preference: squad.get("preference").toJSON(),
-      status: squad.get("status")
-    };
+    return await parseSquad(squad);
   }));
 
   return result;
@@ -112,8 +120,8 @@ Parse.Cloud.define("joinSquad", async (request) => {
   const newGuestPointer = User.createWithoutData(userId);
 
   guestPointers.push(newGuestPointer);
-  console.log(':~: joinSquad newGuestPointer', newGuestPointer);
-  console.log(':~: joinSquad guestPointers', guestPointers);
+
+
   squad.set("guests", guestPointers);
 
   if (guestPointers.length === 3) {
@@ -143,15 +151,5 @@ Parse.Cloud.define("getMySquad", async (request) => {
     return null;
   }
 
-  const host = await squad.get("host").fetch();
-  const guests = await Promise.all(squad.get("guests").map(guest => guest.fetch()));
-
-  return {
-    objectId: squad.id,
-    host: { username: host.get("username"), objectId: host.id },
-    guests: guests.map(guest => ({ username: guest.get("username"), objectId: guest.id })),
-    preference: squad.get("preference").toJSON(),
-    status: squad.get("status"),
-    friendCode: squad.get("friendCode")
-  };
+  return await parseSquad(squad);
 });

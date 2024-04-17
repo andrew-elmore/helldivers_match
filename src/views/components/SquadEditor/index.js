@@ -7,35 +7,18 @@ import { useAuth } from '../../../context/AuthContext';
 import Parse from 'parse';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 
-const SquadEditor = ({currentSquad, onSave, liveUpdate}) => {
-  const { currentUser } = useAuth();
-  const [squad, setSquad] = useState( new Squad(currentSquad || {host: {objectId: currentUser.id}}));
+const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad}) => {
+  // const { currentUser } = useAuth();
+  // const [squad, setSquad] = useState( new Squad(currentSquad || {host: {objectId: currentUser.id}}));
   const [friendCode, setFriendCode] = useState(squad.friendCode);
 
-  useEffect(() => {
-    if (liveUpdate) {
-      handleSave();
-    }
-  }, [squad]);
-
-  const handleSave = async () => {
-    // :~~: add messages instead of alerts when requested. 
-    try {
-      squad.validate();
-      const actionToken = squad.getActionToken();
-      const result = await Parse.Cloud.run("saveSquad", actionToken);
-      onSave(result)
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save squad.");
-    }
-  };
 
 
   const handleSetSquad = (name, value) => {
-    setSquad(new Squad({
+    onChange(new Squad({
       ...squad,
       [name]: value
     }));
@@ -76,6 +59,13 @@ const SquadEditor = ({currentSquad, onSave, liveUpdate}) => {
         <Typography variant="h5">Edit Squad</Typography>
       </Grid>
       <Grid item xs={12}>
+        {typeof refetchSquad === 'function' && (
+          <IconButton color="primary" onClick={refetchSquad}>
+            <RefreshIcon />
+          </IconButton>
+        )}
+      </Grid>
+      <Grid item xs={12}>
         <TextField
           variant="filled"
           type="text"
@@ -110,11 +100,11 @@ const SquadEditor = ({currentSquad, onSave, liveUpdate}) => {
       <Grid item xs={12}>
         <PreferencesEditor preference={squad.preference} setPreference={updatePreference} />
       </Grid>
-      {!liveUpdate && (
+      {/* {!(typeof refetchSquad === 'function') && (
         <Grid item xs={12}>
           <Button onClick={handleSave} variant="contained">Save Squad</Button>
         </Grid>
-      )}
+      )} */}
     </Grid>
   );
 }
