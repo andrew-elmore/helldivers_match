@@ -115,11 +115,16 @@ Parse.Cloud.define("joinSquad", async (request) => {
   }
 
   const User = Parse.Object.extend("_User");
-  const newGuestPointer = User.createWithoutData(userId);
+  let newGuestPointer
+
+  if (userId === null) {
+    newGuestPointer = null
+  } else {
+    newGuestPointer = User.createWithoutData(userId);
+  }
+
 
   guestPointers.push(newGuestPointer);
-
-
   squad.set("guests", guestPointers);
 
   if (guestPointers.length === 3) {
@@ -143,11 +148,16 @@ Parse.Cloud.define("leaveSquad", async (request) => {
 
   let guests = squad.get("guests") || [];
   if (userId) {
-      guests = guests.filter(guest => guest && guest.id !== userId);
+      guests = guests.filter((guest) => {
+        return (
+          guest === null &&
+          guest.objectId !== userId
+        )
+      });
   } else {
       const nullIndex = guests.indexOf(null);
       if (nullIndex > -1) {
-          guests.splice(nullIndex, 1);
+        guests.splice(nullIndex, 1);
       }
   }
 

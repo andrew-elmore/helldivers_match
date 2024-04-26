@@ -47,10 +47,14 @@ const MySquad = () => {
   };
 
   const handleJoinSquad = async (userId, squadId) => {
-    console.log(':~: handleJoinSquad', userId, squadId)
+    await Parse.Cloud.run("joinSquad", { userId, squadId });
+    fetchMySquad()
   }
+
   const handleLeaveSquad = async (userId, squadId) => {
     console.log(':~: handleLeaveSquad', userId, squadId)
+    await Parse.Cloud.run("leaveSquad", { userId, squadId });
+    fetchMySquad()
   }
 
   useEffect(() => {
