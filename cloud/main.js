@@ -9,7 +9,7 @@ const parseSquad = async (squad) => {
   })) : [];
 
   const guests = guestObjects.map(guest => {
-    return !!guest ? ({ username: guest.get("username"), objectId: guest.objectId }) : null;
+    return !!guest ? ({ username: guest.get("username"), objectId: guest.id }) : null;
   });
 
 
@@ -147,11 +147,11 @@ Parse.Cloud.define("leaveSquad", async (request) => {
   }
 
   let guests = squad.get("guests") || [];
-  if (userId) {
+  if (!!userId) {
       guests = guests.filter((guest) => {
         return (
-          guest === null &&
-          guest.objectId !== userId
+          guest === null ||
+          guest?.id !== userId
         )
       });
   } else {

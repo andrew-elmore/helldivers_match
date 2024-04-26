@@ -22,7 +22,6 @@ const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad, onJoinSquad, on
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(':~: handleChange', name, value)
     handleSetSquad(name, value)
   };
 
@@ -72,7 +71,7 @@ const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad, onJoinSquad, on
         <Grid item xs={12} key={index}>
           <Grid container alignItems="center" justifyContent="space-between" style={{padding: 8}}>
             <Typography variant="h6" sx={{ width: '100%' }}>{guest?.username || "--CLASSIFIED--"}</Typography>
-            <IconButton color="primary" onClick={() => onLeaveSquad(guest?.username || null, squad.objectId)} sx={{ position: 'absolute', right: 0 }}>
+            <IconButton color="primary" onClick={() => onLeaveSquad(guest?.objectId || null, squad.objectId)} sx={{ position: 'absolute', right: 0 }}>
               <RemoveCircleOutlineIcon />
             </IconButton>
           </Grid>
