@@ -10,12 +10,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
 
-const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad}) => {
-  // const { currentUser } = useAuth();
-  // const [squad, setSquad] = useState( new Squad(currentSquad || {host: {objectId: currentUser.id}}));
+const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad, onJoinSquad, onLeaveSquad}) => {
   const [friendCode, setFriendCode] = useState(squad.friendCode);
-
-
 
   const handleSetSquad = (name, value) => {
     onChange(new Squad({
@@ -36,11 +32,6 @@ const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad}) => {
     handleSetSquad('preference', newPreference)
   }
 
-  const handleRemoveSquadMember = (index) => {
-    const updatedGuests = [...squad.guests];
-    updatedGuests.splice(index, 1);
-    handleSetSquad('guests', updatedGuests);
-  };
 
   const handleAddSquadMember = () => {
     if (squad.guests.length < 3) {
@@ -81,7 +72,7 @@ const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad}) => {
         <Grid item xs={12} key={index}>
           <Grid container alignItems="center" justifyContent="space-between" style={{padding: 8}}>
             <Typography variant="h6" sx={{ width: '100%' }}>{guest?.username || "--CLASSIFIED--"}</Typography>
-            <IconButton color="primary" onClick={() => handleRemoveSquadMember(index)} sx={{ position: 'absolute', right: 0 }}>
+            <IconButton color="primary" onClick={() => onLeaveSquad(guest?.username || null, squad.objectId)} sx={{ position: 'absolute', right: 0 }}>
               <RemoveCircleOutlineIcon />
             </IconButton>
           </Grid>
@@ -91,7 +82,7 @@ const SquadEditor = ({squad, onChange, liveUpdate, refetchSquad}) => {
         <Grid item xs={12} key={index}>
           <Grid container alignItems="center" justifyContent="space-between" style={{padding: 8}}>
             <Typography variant="h6" sx={{ width: '100%' }}>Open</Typography>
-            <IconButton color="primary" onClick={handleAddSquadMember} sx={{ position: 'absolute', right: 0 }}>
+            <IconButton color="primary" onClick={() => onJoinSquad(null, squad.objectId)} sx={{ position: 'absolute', right: 0 }}>
               <AddCircleOutlineIcon />
             </IconButton>
           </Grid>

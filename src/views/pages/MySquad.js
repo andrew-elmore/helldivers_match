@@ -46,6 +46,12 @@ const MySquad = () => {
     }
   };
 
+  const handleJoinSquad = async (userId, squadId) => {
+    console.log(':~: handleJoinSquad', userId, squadId)
+  }
+  const handleLeaveSquad = async (userId, squadId) => {
+    console.log(':~: handleLeaveSquad', userId, squadId)
+  }
 
   useEffect(() => {
     fetchMySquad();
@@ -64,9 +70,10 @@ const MySquad = () => {
             squad={squad}
             onChange={handleChange}
             refetchSquad={fetchMySquad}
+            onJoinSquad={handleJoinSquad}
+            onLeaveSquad={handleLeaveSquad}
           />
         </Grid>
-
       </Grid>
     </>
   );

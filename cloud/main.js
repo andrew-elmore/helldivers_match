@@ -8,12 +8,10 @@ const parseSquad = async (squad) => {
     }
   })) : [];
 
-  console.log(':~: guestObjects', guestObjects)
   const guests = guestObjects.map(guest => {
     return !!guest ? ({ username: guest.get("username"), objectId: guest.objectId }) : null;
   });
 
-  console.log(':~: guests', guests)
 
 
 
@@ -128,11 +126,40 @@ Parse.Cloud.define("joinSquad", async (request) => {
     squad.set("status", "full");
   }
 
-
-  // return squad.toJSON()
   await squad.save(null, { useMasterKey: true });
 
   return { success: "User added to the squad successfully, and status updated if necessary." };
+});
+
+Parse.Cloud.define("leaveSquad", async (request) => {
+  const { squadId, userId } = request.params;
+  const Squad = Parse.Object.extend("Squad");
+  const squadQuery = new Parse.Query(Squad);
+  const squad = await squadQuery.get(squadId, { useMasterKey: true });
+
+  if (!squad) {
+      throw new Error("Squad not found.");
+  }
+
+  let guests = squad.get("guests") || [];
+  if (userId) {
+      guests = guests.filter(guest => guest && guest.id !== userId);
+  } else {
+      const nullIndex = guests.indexOf(null);
+      if (nullIndex > -1) {
+          guests.splice(nullIndex, 1);
+      }
+  }
+
+  squad.set("guests", guests);
+
+  if (guests.length < 3 && squad.get("status") === "full") {
+      squad.set("status", "open");
+  }
+
+  await squad.save(null, { useMasterKey: true });
+
+  return { success: "Guest removed from the squad successfully, and status updated if necessary." };
 });
 
 Parse.Cloud.define("getMySquad", async (request) => {
